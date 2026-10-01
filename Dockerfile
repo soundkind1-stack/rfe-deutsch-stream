@@ -75,7 +75,7 @@ CMD ["bash", "-c", "\
       -keyint_min 2 \
       -sc_threshold 0 \
       -b:v 300k \
-      -maxrate 3000k \
+      -maxrate 300k \
       -bufsize 600k \
       -c:a aac \
       -b:a 128k \
