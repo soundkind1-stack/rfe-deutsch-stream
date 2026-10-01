@@ -4,9 +4,10 @@ security = single("/usr/share/sound/test.wav")
 
 audio_stream = fallback(track_sensitive=false, [my_music, security])
 
+# Das hier versteht die alte Version 2.0.2 fehlerfrei (Umschaltung per Zeitschaltuhr)
 final_audio = switch([
-  ({ 0m-5m }, my_news),
-  ({ 30m-35m }, my_news),
+  ({ 0h0m-0h5m }, my_news),
+  ({ 0h30m-0h35m }, my_news),
   ({ true }, audio_stream)
 ])
 
