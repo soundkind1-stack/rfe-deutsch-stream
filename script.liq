@@ -1,15 +1,31 @@
+# Radio Freies Eurasien
+# Liquidsoap 2.0.2
+# Audio-Ausgabe als raw PCM über eine Linux Named Pipe
+
 my_music = playlist("/home/radio/music")
 my_news  = playlist("/home/radio/news")
-security = single("/usr/share/sound/test.wav")
 
-audio_stream = fallback(track_sensitive=false, [my_music, security])
+# Zeitgesteuerter Hauptstream:
+# 00:00 - 04:59 -> News
+# 30:00 - 34:59 -> News
+# ansonsten       -> Musik
+final_audio = switch(
+  track_sensitive=false,
+  [
+    ({ 0m-5m },  (my_news : source)),
+    ({ 30m-35m }, (my_news : source)),
+    ({ true },    (my_music : source))
+  ]
+)
 
-# Der automatische News-Wechsel (Punkt und Halb nach Berliner Zeit)
-final_audio = switch([
-  ({ 0h0m-0h5m }, my_news),
-  ({ 0h30m-0h35m }, my_news),
-  ({ true }, audio_stream)
-])
-
-# Audio lokal als unkomprimierte Wavedatei an die Systemausgabe leiten
-output.file(%wav, "/home/radio/live.wav", final_audio)
+# WAV-Encoder ohne WAV-Header = reines 16-bit PCM.
+output.file(
+  %wav(
+    stereo=true,
+    channels=2,
+    samplesize=16,
+    header=false
+  ),
+  "/home/radio/live.pipe",
+  final_audio
+)
