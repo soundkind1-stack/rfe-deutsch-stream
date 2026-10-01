@@ -13,7 +13,7 @@ RUN apt-get update && \
         bash && \
     rm -rf /var/lib/apt/lists/*
 
-# Zeitzone Frankfurt/Berlin
+# Zeitzone Berlin
 RUN cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
     echo "Europe/Berlin" > /etc/timezone
 
@@ -27,17 +27,15 @@ COPY . /home/radio/
 
 RUN dos2unix /home/radio/script.liq
 
-# Alte Datei/Pipe entfernen und echte Named Pipe erzeugen.
-RUN rm -f /home/radio/live.wav /home/radio/live.pipe && \
-    mkfifo -m 666 /home/radio/live.pipe
-
 CMD ["bash", "-c", "\
+    rm -f /home/radio/live.wav /home/radio/live.pipe; \
+    mkfifo -m 666 /home/radio/live.pipe; \
+    \
     echo '=== Radio Freies Eurasien: starting FFmpeg ==='; \
     \
     ffmpeg \
       -hide_banner \
       -loglevel warning \
-      -re \
       -loop 1 \
       -framerate 30 \
       -i /home/radio/background.png \
@@ -62,7 +60,7 @@ CMD ["bash", "-c", "\
       -ar 44100 \
       -ac 2 \
       -f flv \
-      'rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u' \
+      \"$TWITCH_RTMP_URL\" \
       & \
     FFMPEG_PID=$!; \
     \
