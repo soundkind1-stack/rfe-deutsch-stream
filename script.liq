@@ -1,22 +1,32 @@
+# 1. Audio-Quellen laden
 my_music = playlist("/home/radio/music")
 my_news  = playlist("/home/radio/news")
 security = single("/usr/share/sound/test.wav")
 
 audio_stream = fallback(track_sensitive=false, [my_music, security])
 
-# Das hier versteht die alte Version 2.0.2 fehlerfrei (Umschaltung per Zeitschaltuhr)
+# 2. News-Umschaltung für die Version 2.0.2 (starr nach Minuten)
 final_audio = switch([
-  ({ 0h0m-0h5m }, my_news),
-  ({ 0h30m-0h35m }, my_news),
+  ({ 0m-5m }, my_news),
+  ({ 30m-35m }, my_news),
   ({ true }, audio_stream)
 ])
 
+# 3. Hintergrundbild als Video-Spur laden
 video_stream = video.image("/home/radio/background.png")
+
+# 4. Audio und Video verschmelzen
 rfe_broadcast = mux.video(video=video_stream, final_audio)
 
-output.gstreamer(
-  video_pipeline="videoconvert ! x264enc bitrate=1500 speed-preset=ultrafast tune=zerolatency ! video/x-h264,profile=baseline ! flvmux name=mux !",
-  audio_pipeline="audioconvert ! voaacenc bitrate=128000 ! mux.",
-  location="rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u",
+# 5. Der native, fehlerfreie Ausgang direkt zu Twitch (Ohne GStreamer-Syntax-Hölle!)
+output.url(
+  url="rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u",
+  %ffmpeg(
+    format="flv",
+    vcodec="libx264",
+    vsetting=[("preset","ultrafast"),("tune","zerolatency"),("b","1500k")],
+    acodec="aac",
+    asetting=[("b","128k")]
+  ),
   rfe_broadcast
 )
