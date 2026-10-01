@@ -8,13 +8,13 @@
 set("init.allow_root", true)
 
 # ------------------------------------------------------------
-# PLAYLISTEN (Filtert Systemdateien aus und liest nur MP3s)
+# PLAYLISTEN (Saubere Pfade für Version 2.0.2)
 # ------------------------------------------------------------
-my_music = playlist(default="/usr/share/sound/test.wav", "/home/radio/music")
-my_news  = playlist(default="/usr/share/sound/test.wav", "/home/radio/news")
+my_music = playlist("/home/radio/music")
+my_news  = playlist("/home/radio/news")
 
 # ------------------------------------------------------------
-# AUDIO ABSICHERN AGAINST DEFEKTE DATEIEN
+# AUDIO ABSICHERN GEGEN DEFEKTE / LEERE ORDNER
 # ------------------------------------------------------------
 safe_music = mksafe(my_music)
 
