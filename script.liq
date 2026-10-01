@@ -1,40 +1,27 @@
-# ============================================================
+# ============================================================================
 # RADIO FREIES EURASIEN
 # Liquidsoap 2.0.2
 # Audio -> raw PCM -> Named Pipe -> FFmpeg
-# ============================================================
+# ============================================================================
+
+# SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
+set("init.allow_root", true)
 
 # ------------------------------------------------------------
 # PLAYLISTEN
 # ------------------------------------------------------------
-
 my_music = playlist("/home/radio/music")
 my_news  = playlist("/home/radio/news")
 
-
 # ------------------------------------------------------------
 # MUSIK SICHER MACHEN
-#
-# Falls music/ leer ist oder keine Datei abgespielt werden kann,
-# liefert mksafe() Stille statt Liquidsoap zu beenden.
+# Falls music/ leer ist, liefert mksafe() Stille statt Absturz.
 # ------------------------------------------------------------
-
 safe_music = mksafe(my_music)
-
 
 # ------------------------------------------------------------
 # NEWS + MUSIK-FALLBACK
-#
-# Während eines News-Zeitfensters:
-#
-#   News vorhanden  -> News
-#   keine News      -> Musik
-#   beides nicht    -> Stille
-#
-# mksafe() macht das Ergebnis anschließend garantiert
-# infallible für den Haupt-Switch.
 # ------------------------------------------------------------
-
 news_or_music = mksafe(
   fallback(
     track_sensitive=false,
@@ -45,15 +32,12 @@ news_or_music = mksafe(
   )
 )
 
-
 # ------------------------------------------------------------
-# HAUPTSTREAM
-#
+# HAUPTSTREAM (Zeitgesteuert für Version 2.0.2)
 # 00:00 - 04:59 -> News / Musik-Fallback
 # 30:00 - 34:59 -> News / Musik-Fallback
 # ansonsten     -> Musik
 # ------------------------------------------------------------
-
 final_audio = switch(
   track_sensitive=false,
   [
@@ -63,17 +47,9 @@ final_audio = switch(
   ]
 )
 
-
 # ------------------------------------------------------------
-# RAW PCM AUSGABE
-#
-# Kein WAV-Header!
-# FFmpeg liest:
-#   s16le
-#   44100 Hz
-#   2 Kanäle
+# RAW PCM AUSGABE (Kein WAV-Header!)
 # ------------------------------------------------------------
-
 output.file(
   %wav(
     stereo=true,
