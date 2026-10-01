@@ -32,7 +32,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Extrem optimiert: 1 FPS Standbild schont die CPU!)
+# START (Mit integriertem Anti-Inaktivitäts-Loop für Render)
 # ============================================================
 
 CMD ["bash", "-c", "\
@@ -45,6 +45,9 @@ CMD ["bash", "-c", "\
     \
     echo '=== RFE: Launching Fake Webserver on Port 10000 ==='; \
     python3 -m http.server 10000 & \
+    \
+    echo '=== RFE: Launching Anti-Shutdown-Loop... ==='; \
+    bash -c 'while true; do sleep 60; curl -s -I http://localhost:10000 > /dev/null; done' & \
     \
     echo '=== RFE: starting Liquidsoap ==='; \
     liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
