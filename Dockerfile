@@ -32,7 +32,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Optimiert auf ressourcenschonendes 480p Web-Streaming)
+# START (Extrem optimiert: 1 FPS Standbild schont die CPU!)
 # ============================================================
 
 CMD ["bash", "-c", "\
@@ -54,29 +54,29 @@ CMD ["bash", "-c", "\
     echo '=== RFE: Waiting 4 Seconds for Audio-Buffer... ==='; \
     sleep 4; \
     \
-    echo '=== RFE: starting FFmpeg (480p Lean-Stream) ==='; \
+    echo '=== RFE: starting FFmpeg (Ultra-Lean 1 FPS Setup) ==='; \
     ffmpeg \
       -hide_banner \
       -loglevel info \
       -loop 1 \
-      -framerate 30 \
+      -framerate 1 \
       -i /home/radio/background.png \
       -f s16le \
       -ar 44100 \
       -ac 2 \
       -i /home/radio/live.pipe \
-      -vf 'scale=854:480:force_original_aspect_ratio=decrease,pad=854:480:(ow-iw)/2:(oh-ih)/2,format=yuv420p' \
+      -vf 'scale=854:480,format=yuv420p' \
       -c:v libx264 \
       -preset ultrafast \
       -tune zerolatency \
       -pix_fmt yuv420p \
-      -r 30 \
-      -g 60 \
-      -keyint_min 60 \
+      -r 1 \
+      -g 2 \
+      -keyint_min 2 \
       -sc_threshold 0 \
-      -b:v 1000k \
-      -maxrate 1000k \
-      -bufsize 2000k \
+      -b:v 300k \
+      -maxrate 300k \
+      -bufsize 600k \
       -c:a aac \
       -b:a 128k \
       -ar 44100 \
