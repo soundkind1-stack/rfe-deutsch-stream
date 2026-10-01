@@ -8,15 +8,14 @@
 set("init.allow_root", true)
 
 # ------------------------------------------------------------
-# PLAYLISTEN (Unendliche Schleife & Live-Ordner-Scan aktiv!)
+# PLAYLISTEN (Mit unzerstörbarem FFmpeg-Decoder-Fix!)
 # ------------------------------------------------------------
-# mode="random" mischt deine Songs durch.
-# reload_mode="watch" sorgt dafür, dass neu hochgeladene MP3s sofort erkannt werden.
-my_music = playlist(mode="random", reload_mode="watch", "/home/radio/music")
-my_news  = playlist(mode="random", reload_mode="watch", "/home/radio/news")
+my_music = playlist("/home/radio/music")
+# decode_with="ffmpeg" zwingt das System, unsaubere News-MP3s fehlerfrei zu schlucken
+my_news  = playlist(decode_with="ffmpeg", "/home/radio/news")
 
 # ------------------------------------------------------------
-# AUDIO ABSICHERN GEGEN DEFEKTE / LEERE ORDNER
+# AUDIO ABSICHERN
 # ------------------------------------------------------------
 safe_music = mksafe(my_music)
 
