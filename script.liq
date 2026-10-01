@@ -8,8 +8,7 @@
 set("init.allow_root", true)
 
 # GLOBALER FIX FÜR NEWS-MP3s: FFmpeg als primären System-Decoder erzwingen!
-# Das bügelt fehlerhafte VBR-Header automatisch im Hintergrund glatt.
-set("decoder.priorities", ["ffmpeg"])
+settings.decoder.priorities.set(["ffmpeg"])
 
 # ------------------------------------------------------------
 # PLAYLISTEN (Absolut clean für Version 2.0.2)
