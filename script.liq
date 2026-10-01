@@ -7,18 +7,14 @@
 # SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
 
-# RENDER-TRICK: Öffnet den vom Cloud-Host verlangten Web-Port, um Shutdowns zu blockieren
-set("harbor.bind_addr", "0.0.0.0")
-declare_harbor = harbor.http(port=10000, password="x")
-
 # ------------------------------------------------------------
-# PLAYLISTEN (Saubere Pfade für Version 2.0.2)
+# PLAYLISTEN
 # ------------------------------------------------------------
 my_music = playlist("/home/radio/music")
 my_news  = playlist("/home/radio/news")
 
 # ------------------------------------------------------------
-# AUDIO ABSICHERN GEGEN DEFEKTE / LEERE ORDNER
+# AUDIO ABSICHERN
 # ------------------------------------------------------------
 safe_music = mksafe(my_music)
 
@@ -45,7 +41,7 @@ final_audio = switch(
 )
 
 # ------------------------------------------------------------
-# RAW PCM AUSGABE (Kein WAV-Header!)
+# RAW PCM AUSGABE
 # ------------------------------------------------------------
 output.file(
   %wav(
@@ -54,6 +50,7 @@ output.file(
     samplesize=16,
     header=false
   ),
+  append=false,
   "/home/radio/live.pipe",
   final_audio
 )
