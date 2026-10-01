@@ -8,13 +8,15 @@
 set("init.allow_root", true)
 
 # ------------------------------------------------------------
-# PLAYLISTEN
+# PLAYLISTEN (Unendliche Schleife & Live-Ordner-Scan aktiv!)
 # ------------------------------------------------------------
-my_music = playlist("/home/radio/music")
-my_news  = playlist("/home/radio/news")
+# mode="random" mischt deine Songs durch.
+# reload_mode="watch" sorgt dafür, dass neu hochgeladene MP3s sofort erkannt werden.
+my_music = playlist(mode="random", reload_mode="watch", "/home/radio/music")
+my_news  = playlist(mode="random", reload_mode="watch", "/home/radio/news")
 
 # ------------------------------------------------------------
-# AUDIO ABSICHERN
+# AUDIO ABSICHERN GEGEN DEFEKTE / LEERE ORDNER
 # ------------------------------------------------------------
 safe_music = mksafe(my_music)
 
