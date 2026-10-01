@@ -31,7 +31,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START
+# START (Optimierter Parallellauf mit Boot-Verzögerung)
 # ============================================================
 
 CMD ["bash", "-c", "\
@@ -41,6 +41,14 @@ CMD ["bash", "-c", "\
     mkfifo -m 666 /home/radio/live.pipe; \
     \
     echo '=== RFE: FIFO created ==='; \
+    \
+    echo '=== RFE: starting Liquidsoap ==='; \
+    liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
+    LIQ_PID=$!; \
+    echo \"=== RFE: Liquidsoap PID $LIQ_PID ===\"; \
+    \
+    echo '=== RFE: Waiting for Audio-Buffer... ==='; \
+    sleep 3; \
     \
     echo '=== RFE: starting FFmpeg ==='; \
     ffmpeg \
@@ -73,25 +81,15 @@ CMD ["bash", "-c", "\
       \"$TWITCH_RTMP_URL\" \
       > /tmp/ffmpeg.log 2>&1 & \
     FFMPEG_PID=$!; \
-    \
     echo \"=== RFE: FFmpeg PID $FFMPEG_PID ===\"; \
     \
-    echo '=== RFE: starting Liquidsoap ==='; \
-    liquidsoap /home/radio/script.liq & \
-    LIQ_PID=$!; \
+    sleep 2; \
     \
-    echo \"=== RFE: Liquidsoap PID $LIQ_PID ===\"; \
-    \
-    sleep 3; \
-    \
-    echo '=== RFE: Liquidsoap log ==='; \
+    echo '=== RFE: Current Liquidsoap log ==='; \
     cat /tmp/liquidsoap.log || true; \
     \
-    echo '=== RFE: FFmpeg log ==='; \
+    echo '=== RFE: Current FFmpeg log ==='; \
     cat /tmp/ffmpeg.log || true; \
-    \
-    echo '=== RFE: processes ==='; \
-    ps -ef | grep -E 'ffmpeg|liquidsoap' | grep -v grep || true; \
     \
     wait -n $FFMPEG_PID $LIQ_PID; \
     STATUS=$?; \
