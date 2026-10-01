@@ -31,7 +31,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Optimierter Parallellauf mit Boot-Verzögerung)
+# START (Sicherer Parallelstart mit direktem Twitch-Key)
 # ============================================================
 
 CMD ["bash", "-c", "\
@@ -40,7 +40,9 @@ CMD ["bash", "-c", "\
     rm -f /home/radio/live.wav /home/radio/live.pipe; \
     mkfifo -m 666 /home/radio/live.pipe; \
     \
-    echo '=== RFE: FIFO created ==='; \
+    rm -f /home/radio/music/.gitkeep /home/radio/news/.gitkeep; \
+    \
+    echo '=== RFE: FIFO created & System cleaned ==='; \
     \
     echo '=== RFE: starting Liquidsoap ==='; \
     liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
@@ -78,7 +80,7 @@ CMD ["bash", "-c", "\
       -ar 44100 \
       -ac 2 \
       -f flv \
-      \"$TWITCH_RTMP_URL\" \
+      \"rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u\" \
       > /tmp/ffmpeg.log 2>&1 & \
     FFMPEG_PID=$!; \
     echo \"=== RFE: FFmpeg PID $FFMPEG_PID ===\"; \
