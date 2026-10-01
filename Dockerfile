@@ -2,12 +2,11 @@ FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 1. Multimedia-Tools und den Icecast-Audioserver installieren
+# 1. Nur die stabilen Kern-Pakete installieren (Kein Icecast mehr!)
 RUN apt-get update && apt-get install -y \
     tzdata \
     liquidsoap \
     ffmpeg \
-    icecast2 \
     curl \
     dos2unix \
     && rm -rf /var/lib/apt/lists/*
@@ -23,10 +22,10 @@ COPY . /home/radio/
 
 RUN dos2unix /home/radio/script.liq
 
-# ==============================================================================
-# 2. DER SYSTEM-TRICK: Erst Icecast starten, dann Liquidsoap, dann mixt FFmpeg das Video!
-# ==============================================================================
-CMD icecast2 -b -c /etc/icecast2/icecast.xml && \
-    liquidsoap --detach /home/radio/script.liq && \
-    sleep 3 && \
-    ffmpeg -re -loop 1 -i /home/radio/background.png -i http://localhost:8000/radio.mp3 -c:v libx264 -preset ultrafast -tune zerolatency -b:v 1500k -c:a copy -f flv rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u
+# 2. Die Audiopuffer-Datei als virtuelle Pipe initialisieren
+RUN touch /home/radio/live.wav
+
+# 3. Liquidsoap als Hintergrund-Daemon (-d) starten und FFmpeg das Video zu Twitch streamen lassen!
+CMD liquidsoap -d /home/radio/script.liq && \
+    sleep 2 && \
+    ffmpeg -re -loop 1 -i /home/radio/background.png -i /home/radio/live.wav -c:v libx264 -preset ultrafast -tune zerolatency -b:v 1500k -c:a aac -b:a 128k -f flv rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u
