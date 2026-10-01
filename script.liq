@@ -7,12 +7,15 @@
 # SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
 
+# GLOBALER FIX FÜR NEWS-MP3s: FFmpeg als primären System-Decoder erzwingen!
+# Das bügelt fehlerhafte VBR-Header automatisch im Hintergrund glatt.
+set("decoder.priorities", ["ffmpeg"])
+
 # ------------------------------------------------------------
-# PLAYLISTEN (Mit unzerstörbarem FFmpeg-Decoder-Fix!)
+# PLAYLISTEN (Absolut clean für Version 2.0.2)
 # ------------------------------------------------------------
 my_music = playlist("/home/radio/music")
-# decode_with="ffmpeg" zwingt das System, unsaubere News-MP3s fehlerfrei zu schlucken
-my_news  = playlist(decode_with="ffmpeg", "/home/radio/news")
+my_news  = playlist("/home/radio/news")
 
 # ------------------------------------------------------------
 # AUDIO ABSICHERN
