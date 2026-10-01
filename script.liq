@@ -7,6 +7,10 @@
 # SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
 
+# RENDER-TRICK: Öffnet den vom Cloud-Host verlangten Web-Port, um Shutdowns zu blockieren
+set("harbor.bind_addr", "0.0.0.0")
+declare_harbor = harbor.http(port=10000, password="x")
+
 # ------------------------------------------------------------
 # PLAYLISTEN (Saubere Pfade für Version 2.0.2)
 # ------------------------------------------------------------
@@ -30,9 +34,6 @@ news_or_music = mksafe(
 
 # ------------------------------------------------------------
 # HAUPTSTREAM (Zeitgesteuert für Version 2.0.2)
-# 00:00 - 04:59 -> News / Musik-Fallback
-# 30:00 - 34:59 -> News / Musik-Fallback
-# ansonsten     -> Musik
 # ------------------------------------------------------------
 final_audio = switch(
   track_sensitive=false,
