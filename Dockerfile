@@ -77,7 +77,7 @@ CMD ["bash", "-c", "\
     echo \"=== RFE: FFmpeg PID $FFMPEG_PID ===\"; \
     \
     echo '=== RFE: starting Liquidsoap ==='; \
-    liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
+    liquidsoap /home/radio/script.liq & \
     LIQ_PID=$!; \
     \
     echo \"=== RFE: Liquidsoap PID $LIQ_PID ===\"; \
