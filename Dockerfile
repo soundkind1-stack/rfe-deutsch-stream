@@ -1,20 +1,29 @@
-FROM alpine:latest
+FROM ubuntu:22.04
 
-# 1. Zeitzone auf Berlin setzen und benötigte Audio-Tools + Python installieren
-RUN apk add --no-cache \
+# 1. Interaktive Abfragen blockieren und System-Pakete updaten
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
     tzdata \
     liquidsoap \
     ffmpeg \
     curl \
     python3 \
-    && cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
-    && echo "Europe/Berlin" > /etc/timezone
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-tools \
+    && rm -rf /var/lib/apt/lists/*
 
-# 2. Arbeitsverzeichnis im Server erstellen
+# 2. Zeitzone auf Europa/Berlin festnageln
+RUN cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
+    echo "Europe/Berlin" > /etc/timezone
+
+# 3. Arbeitsverzeichnisse im Server erstellen
 WORKDIR /home/radio
 
-# 3. Das Automations-Skript und die Ordnerstrukturen vorbereiten
 RUN mkdir -p /home/radio/music /home/radio/news
 
-# 4. Den Server dauerhaft auf Empfang schalten
+# 4. Den Server auf Empfang schalten und Skript starten
 CMD ["liquidsoap", "/home/radio/script.liq"]
