@@ -7,8 +7,9 @@
 # SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
 
-# GLOBALER FIX FÜR NEWS-MP3s: FFmpeg-Zuweisung im klassischen 2.0.2-Format
-decoder.priorities := ["ffmpeg"]
+# GLOBALER FIX FÜR NEWS-MP3s: FFmpeg als primären System-Decoder erzwingen!
+# Das ist die exakte, dokumentierte Syntax für Liquidsoap 2.0.x
+set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
 
 # ------------------------------------------------------------
 # PLAYLISTEN (Absolut clean für Version 2.0.2)
