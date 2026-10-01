@@ -10,6 +10,7 @@ RUN apt-get update && \
         curl \
         dos2unix \
         coreutils \
+        python3 \
         bash && \
     rm -rf /var/lib/apt/lists/*
 
@@ -31,7 +32,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Sicherer Parallelstart mit direktem Twitch-Key)
+# START (Optimiert auf ressourcenschonendes 480p Web-Streaming)
 # ============================================================
 
 CMD ["bash", "-c", "\
@@ -42,17 +43,18 @@ CMD ["bash", "-c", "\
     \
     rm -f /home/radio/music/.gitkeep /home/radio/news/.gitkeep; \
     \
-    echo '=== RFE: FIFO created & System cleaned ==='; \
+    echo '=== RFE: Launching Fake Webserver on Port 10000 ==='; \
+    python3 -m http.server 10000 & \
     \
     echo '=== RFE: starting Liquidsoap ==='; \
     liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
     LIQ_PID=$!; \
     echo \"=== RFE: Liquidsoap PID $LIQ_PID ===\"; \
     \
-    echo '=== RFE: Waiting for Audio-Buffer... ==='; \
-    sleep 3; \
+    echo '=== RFE: Waiting 4 Seconds for Audio-Buffer... ==='; \
+    sleep 4; \
     \
-    echo '=== RFE: starting FFmpeg ==='; \
+    echo '=== RFE: starting FFmpeg (480p Lean-Stream) ==='; \
     ffmpeg \
       -hide_banner \
       -loglevel info \
@@ -63,7 +65,7 @@ CMD ["bash", "-c", "\
       -ar 44100 \
       -ac 2 \
       -i /home/radio/live.pipe \
-      -vf 'scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,format=yuv420p' \
+      -vf 'scale=854:480:force_original_aspect_ratio=decrease,pad=854:480:(ow-iw)/2:(oh-ih)/2,format=yuv420p' \
       -c:v libx264 \
       -preset ultrafast \
       -tune zerolatency \
@@ -72,9 +74,9 @@ CMD ["bash", "-c", "\
       -g 60 \
       -keyint_min 60 \
       -sc_threshold 0 \
-      -b:v 3000k \
-      -maxrate 3000k \
-      -bufsize 6000k \
+      -b:v 1000k \
+      -maxrate 1000k \
+      -bufsize 2000k \
       -c:a aac \
       -b:a 128k \
       -ar 44100 \
