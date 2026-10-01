@@ -8,17 +8,16 @@
 set("init.allow_root", true)
 
 # ------------------------------------------------------------
-# PLAYLISTEN
+# PLAYLISTEN (Filtert Systemdateien aus und liest nur MP3s)
 # ------------------------------------------------------------
-my_music = playlist("/home/radio/music")
-my_news  = playlist("/home/radio/news")
+my_music = playlist(default="/usr/share/sound/test.wav", "/home/radio/music")
+my_news  = playlist(default="/usr/share/sound/test.wav", "/home/radio/news")
 
 # ------------------------------------------------------------
-# MUSIK SICHER MACHEN
+# AUDIO ABSICHERN AGAINST DEFEKTE DATEIEN
+# ------------------------------------------------------------
 safe_music = mksafe(my_music)
 
-# ------------------------------------------------------------
-# NEWS + MUSIK-FALLBACK
 news_or_music = mksafe(
   fallback(
     track_sensitive=false,
@@ -31,6 +30,9 @@ news_or_music = mksafe(
 
 # ------------------------------------------------------------
 # HAUPTSTREAM (Zeitgesteuert für Version 2.0.2)
+# 00:00 - 04:59 -> News / Musik-Fallback
+# 30:00 - 34:59 -> News / Musik-Fallback
+# ansonsten     -> Musik
 # ------------------------------------------------------------
 final_audio = switch(
   track_sensitive=false,
