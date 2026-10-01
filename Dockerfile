@@ -19,23 +19,33 @@ RUN cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
 
 WORKDIR /home/radio
 
+# Projektverzeichnisse
 RUN mkdir -p \
     /home/radio/music \
     /home/radio/news
 
+# Projektdateien kopieren
 COPY . /home/radio/
 
+# Linux-Zeilenenden sicherstellen
 RUN dos2unix /home/radio/script.liq
 
+# ============================================================
+# START
+# ============================================================
+
 CMD ["bash", "-c", "\
+    set -m; \
+    \
     rm -f /home/radio/live.wav /home/radio/live.pipe; \
     mkfifo -m 666 /home/radio/live.pipe; \
     \
-    echo '=== Radio Freies Eurasien: starting FFmpeg ==='; \
+    echo '=== RFE: FIFO created ==='; \
     \
+    echo '=== RFE: starting FFmpeg ==='; \
     ffmpeg \
       -hide_banner \
-      -loglevel warning \
+      -loglevel info \
       -loop 1 \
       -framerate 30 \
       -i /home/radio/background.png \
@@ -61,15 +71,38 @@ CMD ["bash", "-c", "\
       -ac 2 \
       -f flv \
       \"$TWITCH_RTMP_URL\" \
-      & \
+      > /tmp/ffmpeg.log 2>&1 & \
     FFMPEG_PID=$!; \
     \
-    echo '=== Radio Freies Eurasien: starting Liquidsoap ==='; \
-    liquidsoap /home/radio/script.liq & \
+    echo \"=== RFE: FFmpeg PID $FFMPEG_PID ===\"; \
+    \
+    echo '=== RFE: starting Liquidsoap ==='; \
+    liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
     LIQ_PID=$!; \
+    \
+    echo \"=== RFE: Liquidsoap PID $LIQ_PID ===\"; \
+    \
+    sleep 3; \
+    \
+    echo '=== RFE: Liquidsoap log ==='; \
+    cat /tmp/liquidsoap.log || true; \
+    \
+    echo '=== RFE: FFmpeg log ==='; \
+    cat /tmp/ffmpeg.log || true; \
+    \
+    echo '=== RFE: processes ==='; \
+    ps -ef | grep -E 'ffmpeg|liquidsoap' | grep -v grep || true; \
     \
     wait -n $FFMPEG_PID $LIQ_PID; \
     STATUS=$?; \
+    \
+    echo \"=== RFE: process exited with status $STATUS ===\"; \
+    \
+    echo '=== RFE: final Liquidsoap log ==='; \
+    cat /tmp/liquidsoap.log || true; \
+    \
+    echo '=== RFE: final FFmpeg log ==='; \
+    cat /tmp/ffmpeg.log || true; \
     \
     kill $FFMPEG_PID $LIQ_PID 2>/dev/null || true; \
     exit $STATUS \
