@@ -15,13 +15,10 @@ my_news  = playlist("/home/radio/news")
 
 # ------------------------------------------------------------
 # MUSIK SICHER MACHEN
-# Falls music/ leer ist, liefert mksafe() Stille statt Absturz.
-# ------------------------------------------------------------
 safe_music = mksafe(my_music)
 
 # ------------------------------------------------------------
 # NEWS + MUSIK-FALLBACK
-# ------------------------------------------------------------
 news_or_music = mksafe(
   fallback(
     track_sensitive=false,
@@ -34,9 +31,6 @@ news_or_music = mksafe(
 
 # ------------------------------------------------------------
 # HAUPTSTREAM (Zeitgesteuert für Version 2.0.2)
-# 00:00 - 04:59 -> News / Musik-Fallback
-# 30:00 - 34:59 -> News / Musik-Fallback
-# ansonsten     -> Musik
 # ------------------------------------------------------------
 final_audio = switch(
   track_sensitive=false,
