@@ -28,7 +28,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Reine statische Textbox für 100% Stabilität)
+# START (Mit automatischem 10-Minuten-Live-Update für die Kurse)
 # ============================================================
 
 CMD set -m; \
@@ -39,14 +39,17 @@ CMD set -m; \
     python3 -m http.server 10000 & \
     bash -c 'while true; do sleep 60; curl -s -I http://localhost:10000 > /dev/null; done' & \
     \
-    echo '=== RFE: Generating Financial Ticker Line ==='; \
+    echo '=== RFE: Fetching Initial Market Data ==='; \
     python3 /home/radio/ticker.py; \
+    \
+    echo '=== RFE: Starting 10-Minute Ticker Automator ==='; \
+    bash -c 'while true; do sleep 600; python3 /home/radio/ticker.py; done' & \
     \
     liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
     LIQ_PID=$!; \
     sleep 4; \
     \
-    echo '=== RFE: starting FFmpeg with Clean Static Text ==='; \
+    echo '=== RFE: starting FFmpeg with Auto-Refresh Overlay ==='; \
     ffmpeg \
       -hide_banner \
       -loglevel info \
@@ -57,7 +60,7 @@ CMD set -m; \
       -ar 44100 \
       -ac 2 \
       -i /home/radio/live.pipe \
-      -vf "scale=854:480,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:textfile=/tmp/ticker.txt:y=h-30:x=(w-tw)/2:fontcolor=white:fontsize=16:box=1:boxcolor=black@0.7:boxborderw=8,format=yuv420p" \
+      -vf "scale=854:480,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:textfile=/tmp/ticker.txt:y=h-30:x=(w-tw)/2:fontcolor=white:fontsize=16:box=1:boxcolor=black@0.7:boxborderw=8:reload=1,format=yuv420p" \
       -c:v libx264 \
       -preset ultrafast \
       -tune zerolatency \
