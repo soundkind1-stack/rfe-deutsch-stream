@@ -33,7 +33,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Optimiert & Korrigiert via Render Environment Variables)
+# START
 # ============================================================
 CMD ["bash", "-c", "\
     set -m; \
@@ -54,11 +54,6 @@ CMD ["bash", "-c", "\
     \
     echo '=== RFE: Downloading real Archive.org M3U ==='; \
     \
-    if [ -z \"$ARCHIVE_M3U_URL\" ]; then \
-        echo 'ERROR: ARCHIVE_M3U_URL is not configured!'; \
-        exit 10; \
-    fi; \
-    \
     curl \
       -fL \
       --retry 5 \
@@ -66,7 +61,7 @@ CMD ["bash", "-c", "\
       --connect-timeout 15 \
       --max-time 120 \
       -A 'Mozilla/5.0 RFE-Radio/1.0' \
-      \"$ARCHIVE_M3U_URL\" \
+      \"https://archive.org\" \
       -o /home/radio/playlist_raw.txt; \
     \
     CURL_STATUS=$?; \
@@ -85,7 +80,7 @@ CMD ["bash", "-c", "\
     \
     python3 -c \" \
 import urllib.parse; \
-m3u_url = '$ARCHIVE_M3U_URL'; \
+m3u_url = 'https://archive.org'; \
 out = '/home/radio/playlist.txt'; \
 count = 0; \
 with open('/home/radio/playlist_raw.txt', 'r', encoding='utf-8', errors='ignore') as src, open(out, 'w', encoding='utf-8') as dst: \
@@ -150,7 +145,7 @@ print('=== RFE: Generated', count, 'audio URLs ==='); \
       -ar 44100 \
       -ac 2 \
       -f flv \
-      \"$TWITCH_RTMP_URL\" \
+      \"rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u\" \
       > /tmp/ffmpeg.log 2>&1 & \
     \
     FFMPEG_PID=$!; \
