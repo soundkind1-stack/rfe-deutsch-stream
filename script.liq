@@ -7,9 +7,6 @@
 # SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
 
-# GLOBALER FIX FÜR NEWS-MP3s: FFmpeg als primären System-Decoder erzwingen!
-settings.decoder.priorities.set(["ffmpeg"])
-
 # ------------------------------------------------------------
 # PLAYLISTEN
 # ------------------------------------------------------------
