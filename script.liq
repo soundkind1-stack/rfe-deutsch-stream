@@ -1,27 +1,22 @@
 # ============================================================================
 # RADIO FREIES EURASIEN (RFE-DEUTSCH)
-# Liquidsoap 2.0.2 - 24/7 CLOUD-STREAM ENGINE
+# Liquidsoap 2.0.2
 # ============================================================================
 
-# SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
-
-# GLOBALER FIX FÜR AUDIODATEIEN: FFmpeg als primären System-Decoder erzwingen!
 set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
-
-# Puffer-Sicherung für stabile Internet-Zuspielung
 set("root.sync.buffer", 2.0)
 
 # ------------------------------------------------------------
-# PLAYLIST (Liest die neu gebaute, vollständige Link-Liste ein)
+# ARCHIVE.ORG PLAYLIST
 # ------------------------------------------------------------
 my_music = playlist(mode="random", "/home/radio/playlist.txt")
 
-# AUDIO ABSICHERN GEGEN NETZWERK-WACKLER
+# AUDIO ABSICHERN
 final_audio = mksafe(my_music)
 
 # ------------------------------------------------------------
-# RAW PCM AUSGABE AN DIE NAMED PIPE
+# RAW PCM -> NAMED PIPE
 # ------------------------------------------------------------
 output.file(
   %wav(stereo=true, channels=2, samplesize=16, header=false),
