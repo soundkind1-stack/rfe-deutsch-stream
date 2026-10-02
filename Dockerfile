@@ -28,7 +28,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Sauberer Start über das ausgelagerte Python-Skript)
+# START (Optimiertes Seiten-Wechsel-Laufband gegen Ruckeln)
 # ============================================================
 
 CMD set -m; \
@@ -39,7 +39,7 @@ CMD set -m; \
     python3 -m http.server 10000 & \
     bash -c 'while true; do sleep 60; curl -s -I http://localhost:10000 > /dev/null; done' & \
     \
-    echo '=== RFE: Initializing Finanzen.net Ticker ==='; \
+    echo '=== RFE: Initializing Yahoo Finance Ticker ==='; \
     python3 /home/radio/ticker.py; \
     \
     bash -c 'while true; do sleep 300; python3 /home/radio/ticker.py; done' & \
@@ -48,7 +48,7 @@ CMD set -m; \
     LIQ_PID=$!; \
     sleep 4; \
     \
-    echo '=== RFE: starting FFmpeg with Moving Text Overlay ==='; \
+    echo '=== RFE: starting FFmpeg with Page-Flip Ticker Overlay ==='; \
     ffmpeg \
       -hide_banner \
       -loglevel info \
@@ -59,7 +59,7 @@ CMD set -m; \
       -ar 44100 \
       -ac 2 \
       -i /home/radio/live.pipe \
-      -vf "scale=854:480,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:textfile=/tmp/ticker.txt:y=h-30:x=854-mod(t*40\,1800):fontcolor=white:fontsize=16:box=1:boxcolor=black@0.6:boxborderw=6,format=yuv420p" \
+      -vf "scale=854:480,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:text='+++':y=h-35:x=20:fontcolor=gold:fontsize=18:box=1:boxcolor=black@0.7:boxborderw=8,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:textfile=/tmp/ticker.txt:y=h-35:x=70:fontcolor=white:fontsize=18:box=1:boxcolor=black@0.7:boxborderw=8:start_number=0:reload=1:line_spacing=10:n=1,format=yuv420p" \
       -c:v libx264 \
       -preset ultrafast \
       -tune zerolatency \
