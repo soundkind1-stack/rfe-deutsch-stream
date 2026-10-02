@@ -28,7 +28,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Mit automatischem URL-Umschreiber für sofortigen Ton)
+# START (Automatischer URL-Umschreiber für deine Archive.org-Playlist)
 # ============================================================
 
 CMD set -m; \
@@ -36,9 +36,9 @@ CMD set -m; \
     mkfifo -m 666 /home/radio/live.pipe; \
     rm -f /home/radio/music/.gitkeep; \
     \
-    echo '=== RFE: Downloading & Repairing Playlist Links ==='; \
-    curl -s "https://archive.org" > /home/radio/playlist.txt; \
-    sed -i '/^[^#]/s|^|https://archive.org|' /home/radio/playlist.txt; \
+    echo '=== RFE: Downloading & Rebuilding Archive.org Links ==='; \
+    curl -s "https://archive.org" > /home/radio/playlist_raw.txt; \
+    grep -v '^#' /home/radio/playlist_raw.txt | sed 's|^|https://archive.org|' > /home/radio/playlist.txt; \
     \
     python3 -m http.server 10000 & \
     bash -c 'while true; do sleep 60; curl -s -I http://localhost:10000 > /dev/null; done' & \
