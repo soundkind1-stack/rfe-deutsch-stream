@@ -25,6 +25,9 @@ COPY . /home/radio/
 
 RUN dos2unix /home/radio/script.liq
 
+# EXPOSE passend zum blitz.cloud Auto-Fix auf Port 10000
+EXPOSE 10000
+
 CMD ["bash", "-c", "\
     set -m; \
     \
@@ -32,13 +35,16 @@ CMD ["bash", "-c", "\
     mkfifo -m 666 /home/radio/live.pipe; \
     rm -f /home/radio/music/.gitkeep; \
     \
+    echo '=== RFE: Starting Health-Check Dummy on Port 10000 ==='; \
     python3 -m http.server 10000 & \
     bash -c 'while true; do sleep 60; curl -s -I http://localhost:10000 > /dev/null; done' & \
     \
+    echo '=== RFE: Starting Liquidsoap Engine ==='; \
     liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
     LIQ_PID=$!; \
     sleep 4; \
     \
+    echo '=== RFE: Starting FFmpeg Encoder ==='; \
     ffmpeg \
       -hide_banner \
       -loglevel info \
@@ -49,7 +55,7 @@ CMD ["bash", "-c", "\
       -ar 44100 \
       -ac 2 \
       -i /home/radio/live.pipe \
-      -vf 'scale=854:480,format=yuv420p' \
+      -vf \"scale=854:480,format=yuv420p\" \
       -c:v libx264 \
       -preset ultrafast \
       -tune zerolatency \
@@ -58,11 +64,11 @@ CMD ["bash", "-c", "\
       -g 2 \
       -keyint_min 2 \
       -sc_threshold 0 \
-      -b:v 300k \
-      -maxrate 300k \
-      -bufsize 600k \
+      -b:v 150k \
+      -maxrate 150k \
+      -bufsize 300k \
       -c:a aac \
-      -b:a 128k \
+      -b:a 64k \
       -ar 44100 \
       -ac 2 \
       -f flv \
