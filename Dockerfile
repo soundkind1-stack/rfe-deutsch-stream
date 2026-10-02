@@ -15,10 +15,15 @@ RUN apt-get update && \
         bash && \
     rm -rf /var/lib/apt/lists/*
 
-# Zeitzone Berlin
+# ============================================================
+# ZEITZONE
+# ============================================================
 RUN cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
     echo "Europe/Berlin" > /etc/timezone
 
+# ============================================================
+# ARBEITSVERZEICHNIS
+# ============================================================
 WORKDIR /home/radio
 
 RUN mkdir -p /home/radio/music
@@ -28,29 +33,96 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Automatischer URL-Umschreiber für deine Archive.org-Playlist)
+# START (Optimiert & Korrigiert via Render Environment Variables)
 # ============================================================
-
-CMD set -m; \
-    rm -f /home/radio/live.wav /home/radio/live.pipe; \
+CMD ["bash", "-c", "\
+    set -m; \
+    \
+    echo '================================================'; \
+    echo ' RFE - RADIO FREIES EURASIEN'; \
+    echo ' Container startup'; \
+    echo '================================================'; \
+    \
+    rm -f /home/radio/live.wav; \
+    rm -f /home/radio/live.pipe; \
+    rm -f /home/radio/playlist.txt; \
+    rm -f /home/radio/playlist_raw.txt; \
+    \
     mkfifo -m 666 /home/radio/live.pipe; \
-    rm -f /home/radio/music/.gitkeep; \
     \
-    echo '=== RFE: Downloading & Rebuilding Archive.org Links ==='; \
-    curl -s "https://archive.org" > /home/radio/playlist_raw.txt; \
-    grep -v '^#' /home/radio/playlist_raw.txt | sed 's|^|https://archive.org|' > /home/radio/playlist.txt; \
+    echo '=== RFE: FIFO created ==='; \
     \
-    python3 -m http.server 10000 & \
-    bash -c 'while true; do sleep 60; curl -s -I http://localhost:10000 > /dev/null; done' & \
+    echo '=== RFE: Downloading real Archive.org M3U ==='; \
     \
-    echo '=== RFE: Generating Financial Ticker Line ==='; \
+    if [ -z \"$ARCHIVE_M3U_URL\" ]; then \
+        echo 'ERROR: ARCHIVE_M3U_URL is not configured!'; \
+        exit 10; \
+    fi; \
+    \
+    curl \
+      -fL \
+      --retry 5 \
+      --retry-delay 5 \
+      --connect-timeout 15 \
+      --max-time 120 \
+      -A 'Mozilla/5.0 RFE-Radio/1.0' \
+      \"$ARCHIVE_M3U_URL\" \
+      -o /home/radio/playlist_raw.txt; \
+    \
+    CURL_STATUS=$?; \
+    \
+    if [ $CURL_STATUS -ne 0 ]; then \
+        echo 'ERROR: Archive.org M3U could not be downloaded.'; \
+        echo \"curl exit code: $CURL_STATUS\"; \
+        exit 11; \
+    fi; \
+    \
+    echo '=== RFE: M3U downloaded successfully ==='; \
+    echo '=== RFE: First lines of M3U ==='; \
+    head -20 /home/radio/playlist_raw.txt; \
+    \
+    echo '=== RFE: Converting M3U entries to absolute URLs ==='; \
+    \
+    python3 -c \" \
+import urllib.parse; \
+m3u_url = '$ARCHIVE_M3U_URL'; \
+out = '/home/radio/playlist.txt'; \
+count = 0; \
+with open('/home/radio/playlist_raw.txt', 'r', encoding='utf-8', errors='ignore') as src, open(out, 'w', encoding='utf-8') as dst: \
+    for line in src: \
+        line = line.strip(); \
+        if not line or line.startswith('#'): \
+            continue; \
+        url = urllib.parse.urljoin(m3u_url, line); \
+        dst.write(url + '\\\\n'); \
+        count += 1; \
+print('=== RFE: Generated', count, 'audio URLs ==='); \
+\"; \
+    \
+    echo '=== RFE: Generated playlist ==='; \
+    cat /home/radio/playlist.txt; \
+    \
+    if [ ! -s /home/radio/playlist.txt ]; then \
+        echo 'ERROR: playlist.txt is empty!'; \
+        exit 12; \
+    fi; \
+    \
+    echo '=== RFE: Generating Financial Ticker ==='; \
     python3 /home/radio/ticker.py; \
     \
+    echo '=== RFE: Starting Liquidsoap ==='; \
     liquidsoap /home/radio/script.liq > /tmp/liquidsoap.log 2>&1 & \
     LIQ_PID=$!; \
-    sleep 4; \
     \
-    echo '=== RFE: starting FFmpeg with Clean Static Text ==='; \
+    echo \"=== RFE: Liquidsoap PID $LIQ_PID ===\"; \
+    \
+    sleep 5; \
+    \
+    echo '=== RFE: Liquidsoap startup log ==='; \
+    cat /tmp/liquidsoap.log || true; \
+    \
+    echo '=== RFE: Starting FFmpeg ==='; \
+    \
     ffmpeg \
       -hide_banner \
       -loglevel info \
@@ -61,7 +133,7 @@ CMD set -m; \
       -ar 44100 \
       -ac 2 \
       -i /home/radio/live.pipe \
-      -vf "scale=854:480,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:textfile=/tmp/ticker.txt:y=h-30:x=(w-tw)/2:fontcolor=white:fontsize=16:box=1:boxcolor=black@0.7:boxborderw=8,format=yuv420p" \
+      -vf \"scale=854:480,drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:textfile=/tmp/ticker.txt:y=h-30:x=(w-tw)/2:fontcolor=white:fontsize=16:box=1:boxcolor=black@0.7:boxborderw=8,format=yuv420p\" \
       -c:v libx264 \
       -preset ultrafast \
       -tune zerolatency \
@@ -78,8 +150,25 @@ CMD set -m; \
       -ar 44100 \
       -ac 2 \
       -f flv \
-      "rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u" \
+      \"$TWITCH_RTMP_URL\" \
       > /tmp/ffmpeg.log 2>&1 & \
+    \
     FFMPEG_PID=$!; \
     \
-    wait $FFMPEG_PID
+    echo \"=== RFE: FFmpeg PID $FFMPEG_PID ===\"; \
+    \
+    wait $FFMPEG_PID; \
+    STATUS=$?; \
+    \
+    echo \"=== RFE: FFmpeg exited with status $STATUS ===\"; \
+    \
+    echo '=== RFE: Liquidsoap log ==='; \
+    cat /tmp/liquidsoap.log || true; \
+    \
+    echo '=== RFE: FFmpeg log ==='; \
+    cat /tmp/ffmpeg.log || true; \
+    \
+    kill $LIQ_PID 2>/dev/null || true; \
+    \
+    exit $STATUS \
+"]
