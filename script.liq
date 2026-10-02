@@ -1,8 +1,7 @@
 set("init.allow_root", true)
 set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
-set("root.sync.buffer", 2.0)
 
-my_music = playlist(mode="random", "/home/radio/playlist.txt")
+my_music = playlist(mode="random", reload_mode="watch", "/home/radio/music")
 final_audio = mksafe(my_music)
 
 output.file(
