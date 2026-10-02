@@ -10,6 +10,7 @@ RUN apt-get update && \
         curl \
         dos2unix \
         coreutils \
+        python3 \
         bash && \
     rm -rf /var/lib/apt/lists/*
 
