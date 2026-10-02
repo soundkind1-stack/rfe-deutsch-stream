@@ -1,6 +1,6 @@
 # ============================================================================
 # RADIO FREIES EURASIEN (RFE-DEUTSCH)
-# Liquidsoap 2.0.2 - 24/7 ARCHIVE.ORG CLOUD-STREAM ENGINE
+# Liquidsoap 2.0.2 - 24/7 CLOUD-STREAM ENGINE
 # ============================================================================
 
 # SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
@@ -10,9 +10,9 @@ set("init.allow_root", true)
 set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
 
 # ------------------------------------------------------------
-# PLAYLIST (Streamt direkt und unbegrenzt aus dem Internet Archive!)
+# PLAYLIST (Liest die unzerstörbare Link-Liste ein)
 # ------------------------------------------------------------
-my_music = playlist(mode="random", "https://archive.org/download/b-00-quem-9-tu-disc-1-11-niveau-weshalb-warum/b-00-quem-9-tu-disc-1-11-niveau-weshalb-warum_vbr.m3u")
+my_music = playlist(mode="random", "/home/radio/playlist.txt")
 
 # AUDIO ABSICHERN GEGEN NETZWERK-WACKLER
 final_audio = mksafe(my_music)
