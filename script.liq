@@ -9,8 +9,11 @@ set("init.allow_root", true)
 # GLOBALER FIX FÜR AUDIODATEIEN: FFmpeg als primären System-Decoder erzwingen!
 set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
 
+# Puffer-Sicherung erhöhen für stabile Internet-Streams
+set("root.sync.buffer", 2.0)
+
 # ------------------------------------------------------------
-# PLAYLIST (Liest die unzerstörbare Link-Liste ein)
+# PLAYLIST (Liest die reparierte Link-Liste ein)
 # ------------------------------------------------------------
 my_music = playlist(mode="random", "/home/radio/playlist.txt")
 
