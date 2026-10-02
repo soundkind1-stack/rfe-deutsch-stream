@@ -28,7 +28,7 @@ COPY . /home/radio/
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Vollständig bereinigt via builder.py-Auslagerung)
+# START (Vollständig bereinigt via XML-Struktur)
 # ============================================================
 CMD ["bash", "-c", "\
     set -m; \
@@ -41,24 +41,11 @@ CMD ["bash", "-c", "\
     rm -f /home/radio/live.wav; \
     rm -f /home/radio/live.pipe; \
     rm -f /home/radio/playlist.txt; \
-    rm -f /home/radio/playlist_raw.txt; \
     \
     mkfifo -m 666 /home/radio/live.pipe; \
     \
     echo '=== RFE: FIFO created ==='; \
-    echo '=== RFE: Downloading real Archive.org M3U ==='; \
-    \
-    curl \
-      -fL \
-      --retry 5 \
-      --retry-delay 5 \
-      --connect-timeout 15 \
-      --max-time 120 \
-      -A 'Mozilla/5.0 RFE-Radio/1.0' \
-      \"https://archive.org\" \
-      -o /home/radio/playlist_raw.txt; \
-    \
-    echo '=== RFE: Converting M3U entries to absolute URLs ==='; \
+    echo '=== RFE: Rebuilding Playlist from Archive XML ==='; \
     python3 /home/radio/builder.py; \
     \
     echo '=== RFE: Generated playlist ==='; \
