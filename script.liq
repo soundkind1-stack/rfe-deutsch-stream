@@ -1,37 +1,24 @@
 # ============================================================================
-# RADIO FREIES EURASIEN
-# Liquidsoap 2.0.2
-# Audio -> raw PCM -> Named Pipe -> FFmpeg
+# RADIO FREIES EURASIEN (RFE-DEUTSCH)
+# Liquidsoap 2.0.2 - 24/7 REINE MUSIK-ENGINE
 # ============================================================================
 
+# SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
+
+# GLOBALER FIX FÜR AUDIODATEIEN: FFmpeg als primären System-Decoder erzwingen!
 set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
 
 # ------------------------------------------------------------
-# PLAYLISTEN
+# PLAYLIST (Endlosschleife & Live-Ordner-Scan aktiv!)
 # ------------------------------------------------------------
-my_music = playlist("/home/radio/music")
-my_news  = playlist("/home/radio/news")
+my_music = playlist(mode="random", reload_mode="watch", "/home/radio/music")
+
+# AUDIO ABSICHERN GEGEN DEFEKTE DATEIEN
+final_audio = mksafe(my_music)
 
 # ------------------------------------------------------------
-# AUDIO ABSICHERN
-# ------------------------------------------------------------
-safe_music = mksafe(my_music)
-news_or_music = mksafe(fallback(track_sensitive=false, [my_news, my_music]))
-
-# ------------------------------------------------------------
-# HAUPTSTREAM (Um Punkt News, sonst Musik)
-# ------------------------------------------------------------
-final_audio = switch(
-  track_sensitive=false,
-  [
-    ({ 0m0s-0m5s },   news_or_music),
-    ({ true },    safe_music)
-  ]
-)
-
-# ------------------------------------------------------------
-# RAW PCM AUSGABE
+# RAW PCM AUSGABE AN DIE NAMED PIPE
 # ------------------------------------------------------------
 output.file(
   %wav(stereo=true, channels=2, samplesize=16, header=false),
