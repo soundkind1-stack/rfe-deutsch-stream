@@ -1,29 +1,50 @@
 import urllib.request
 import re
-import sys
+import json
 
 def fetch_ticker():
     try:
-        # 1. Finanzen.net RSS-Feed abgreifen
-        req = urllib.request.Request('https://finanzen.net', headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req) as response:
-            html = response.read().decode('utf-8')
-        titles = re.findall(r'<title><\!\[CDATA\[(.*?)\]\]></title>', html)
-        feed_text = ' +++ '.join([t for t in titles if 'finanzen.net' not in t])
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         
-        # 2. Bitcoin-Kurs live holen
-        with urllib.request.urlopen('https://coindesk.com') as btc_resp:
-            btc_data = btc_resp.read().decode('utf-8')
-            btc_price = re.search(r'"rate":"(.*?)"', btc_data).group(1).split('.')[0]
-            
-        ticker = f'+++ RADIO FREIES EURASIEN WIRTSCHAFTSTICKER +++ BITCOIN: ${btc_price} +++ FINANZEN.NET MARKTREPORT: {feed_text} +++ '
+        # 1. Bitcoin Kurs holen
+        req_btc = urllib.request.Request('https://yahoo.com', headers=headers)
+        with urllib.request.urlopen(req_btc) as resp:
+            data_btc = json.loads(resp.read().decode('utf-8'))
+            btc = int(data_btc['chart']['result'][0]['meta']['regularMarketPrice'])
+
+        # 2. Gold Kurs holen
+        req_gold = urllib.request.Request('https://yahoo.com', headers=headers)
+        with urllib.request.urlopen(req_gold) as resp:
+            data_gold = json.loads(resp.read().decode('utf-8'))
+            gold = int(data_gold['chart']['result'][0]['meta']['regularMarketPrice'])
+
+        # 3. Silber Kurs holen
+        req_silber = urllib.request.Request('https://yahoo.com', headers=headers)
+        with urllib.request.urlopen(req_silber) as resp:
+            data_silber = json.loads(resp.read().decode('utf-8'))
+            silber = round(data_silber['chart']['result'][0]['meta']['regularMarketPrice'], 2)
+
+        # 4. DAX Kurs holen
+        req_dax = urllib.request.Request('https://yahoo.com^GDAXI', headers=headers)
+        with urllib.request.urlopen(req_dax) as resp:
+            data_dax = json.loads(resp.read().decode('utf-8'))
+            dax = int(data_dax['chart']['result'][0]['meta']['regularMarketPrice'])
+
+        # Saubere, kurze Textseiten schreiben
+        ticker_content = (
+            f"MARKET OVERVIEW\n"
+            f"BITCOIN (BTC): ${btc:,}\n"
+            f"GOLD: ${gold:,} | SILBER: ${silber}\n"
+            f"DAX INDEX: {dax:,}"
+        )
+        
         with open('/tmp/ticker.txt', 'w') as f:
-            f.write(ticker * 2)
-        print("=== RFE Ticker: Daten erfolgreich aktualisiert ===")
+            f.write(ticker_content)
+        print("=== RFE Ticker: Marktdaten erfolgreich geladen ===")
     except Exception as e:
         with open('/tmp/ticker.txt', 'w') as f:
-            f.write('+++ RFE WIRTSCHAFTSTICKER: Lade Marktdaten... +++ ')
-        print(f"=== RFE Ticker Warnung: {str(e)} ===")
+            f.write("MARKET DATA\nLOADING...\nLIVE DATA\nRADIO FREIES EURASIEN")
+        print(f"=== RFE Ticker Fehler: {str(e)} ===")
 
 if __name__ == "__main__":
     fetch_ticker()
