@@ -21,20 +21,21 @@ RUN cp /usr/share/zoneinfo/Europe/Berlin /etc/localtime && \
 
 WORKDIR /home/radio
 
-RUN mkdir -p /home/radio/music /home/radio/news
+# Nur noch das reine Musikverzeichnis anlegen
+RUN mkdir -p /home/radio/music
 
 COPY . /home/radio/
 
 RUN dos2unix /home/radio/script.liq
 
 # ============================================================
-# START (Mit automatischem 10-Minuten-Live-Update für die Kurse)
+# START (Reiner Musik-Dauerlauf & 10-Minuten-Ticker)
 # ============================================================
 
 CMD set -m; \
     rm -f /home/radio/live.wav /home/radio/live.pipe; \
     mkfifo -m 666 /home/radio/live.pipe; \
-    rm -f /home/radio/music/.gitkeep /home/radio/news/.gitkeep; \
+    rm -f /home/radio/music/.gitkeep; \
     \
     python3 -m http.server 10000 & \
     bash -c 'while true; do sleep 60; curl -s -I http://localhost:10000 > /dev/null; done' & \
