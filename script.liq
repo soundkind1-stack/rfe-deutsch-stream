@@ -1,14 +1,16 @@
 # ============================================================================
-# RADIO FREIES EURASIEN
-# Liquidsoap 2.0.2
-# Audio -> raw PCM -> Named Pipe -> FFmpeg
+# RADIO FREIES EURASIEN (RFE-DEUTSCH)
+# Liquidsoap 2.0.2 - 24/7 AUDIO-STREAM ENGINE
 # ============================================================================
 
 # SONDEREINSTELLUNG FÜR CLOUD-SERVER: Root-Ausführung erlauben
 set("init.allow_root", true)
 
+# GLOBALER FIX FÜR NEWS-MP3s: FFmpeg als primären System-Decoder erzwingen!
+set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
+
 # ------------------------------------------------------------
-# PLAYLISTEN
+# PLAYLISTEN (Absolut clean für Version 2.0.2)
 # ------------------------------------------------------------
 my_music = playlist("/home/radio/music")
 my_news  = playlist("/home/radio/news")
@@ -17,32 +19,24 @@ my_news  = playlist("/home/radio/news")
 # AUDIO ABSICHERN
 # ------------------------------------------------------------
 safe_music = mksafe(my_music)
-safe_news  = mksafe(my_news)
+news_or_music = mksafe(fallback(track_sensitive=false, [my_news, my_music]))
 
 # ------------------------------------------------------------
-# DER STÜNDLICHE NEWS-TIMER-FIX (Präzise für Version 2.0.2)
+# HAUPTSTREAM (Zeitgesteuert: Um Punkt News, sonst Musik)
 # ------------------------------------------------------------
-# Umschaltung NUR NOCH einmal pro Stunde exakt um XX:00:00 Uhr.
-# track_sensitive=false zwingt das System, die Musik SOFORT zu pausieren.
-# Die News-Quelle wird strikt von Anfang bis Ende abgespielt.
 final_audio = switch(
   track_sensitive=false,
   [
-    ({ 0m0s-0m5s },  safe_news),
-    ({ true },       safe_music)
+    ({ 0m0s-0m5s },   news_or_music),
+    ({ true },    safe_music)
   ]
 )
 
 # ------------------------------------------------------------
-# RAW PCM AUSGABE
+# RAW PCM AUSGABE AN DIE PIPE
 # ------------------------------------------------------------
 output.file(
-  %wav(
-    stereo=true,
-    channels=2,
-    samplesize=16,
-    header=false
-  ),
+  %wav(stereo=true, channels=2, samplesize=16, header=false),
   append=false,
   "/home/radio/live.pipe",
   final_audio
