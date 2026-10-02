@@ -8,11 +8,10 @@
 set("init.allow_root", true)
 
 # GLOBALER FIX FÜR NEWS-MP3s: FFmpeg als primären System-Decoder erzwingen!
-# Das ist die exakte, dokumentierte Syntax für Liquidsoap 2.0.x
-set("decoder.priorities", ["ffmpeg", "mad", "flac", "ogg"])
+settings.decoder.priorities.set(["ffmpeg"])
 
 # ------------------------------------------------------------
-# PLAYLISTEN (Absolut clean für Version 2.0.2)
+# PLAYLISTEN
 # ------------------------------------------------------------
 my_music = playlist("/home/radio/music")
 my_news  = playlist("/home/radio/news")
@@ -21,26 +20,19 @@ my_news  = playlist("/home/radio/news")
 # AUDIO ABSICHERN
 # ------------------------------------------------------------
 safe_music = mksafe(my_music)
-
-news_or_music = mksafe(
-  fallback(
-    track_sensitive=false,
-    [
-      my_news,
-      my_music
-    ]
-  )
-)
+safe_news  = mksafe(my_news)
 
 # ------------------------------------------------------------
-# HAUPTSTREAM (Zeitgesteuert für Version 2.0.2)
+# DER STÜNDLICHE NEWS-TIMER-FIX (Präzise für Version 2.0.2)
 # ------------------------------------------------------------
+# Umschaltung NUR NOCH einmal pro Stunde exakt um XX:00:00 Uhr.
+# track_sensitive=false zwingt das System, die Musik SOFORT zu pausieren.
+# Die News-Quelle wird strikt von Anfang bis Ende abgespielt.
 final_audio = switch(
   track_sensitive=false,
   [
-    ({ 0m-5m },   news_or_music),
-    ({ 30m-35m }, news_or_music),
-    ({ true },    safe_music)
+    ({ 0m0s-0m5s },  safe_news),
+    ({ true },       safe_music)
   ]
 )
 
