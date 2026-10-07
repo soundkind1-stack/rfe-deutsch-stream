@@ -37,6 +37,6 @@ echo '=== STARTE PROZESS 1: TWITCH LIVE ===' && \
 ffmpeg -re -thread_queue_size 2048 -loop 1 -framerate 2 -i /home/radio/background.png -thread_queue_size 2048 -f s16le -ar 44100 -ac 2 -i /home/radio/live.pipe -vf \"scale=854:480,format=yuv420p\" -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p -r 2 -g 4 -b:v 150k -maxrate 150k -bufsize 300k -c:a aac -b:a 64k -ar 44100 -ac 2 -f flv \"rtmp://live.twitch.tv/app/live_1508232326_549kYQXQJHoFg89JbHbUTXfSVYRA4u\" > /tmp/ffmpeg_twitch.log 2>&1 & \
 sleep 20 && \
 echo '=== STARTE PROZESS 2: YOUTUBE WARTEZEIT VORBEI ===' && \
-ffmpeg -re -thread_queue_size 2048 -loop 1 -framerate 2 -i /home/radio/background.png -thread_queue_size 2048 -f s16le -ar 44100 -ac 2 -i /home/radio/live.pipe -vf \"scale=854:480,format=yuv420p\" -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p -r 2 -g 4 -b:v 150k -maxrate 150k -bufsize 300k -c:a aac -b:a 64k -ar 44100 -ac 2 -f flv \"YYYY/ZZZZ\" > /tmp/ffmpeg_youtube.log 2>&1 & \
+ffmpeg -re -thread_queue_size 2048 -loop 1 -framerate 2 -i /home/radio/background.png -thread_queue_size 2048 -f s16le -ar 44100 -ac 2 -i /home/radio/live.pipe -vf \"scale=854:480,format=yuv420p\" -c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p -r 2 -g 4 -b:v 150k -maxrate 150k -bufsize 300k -c:a aac -b:a 64k -ar 44100 -ac 2 -f flv \"rtmp://a.rtmp.youtube.com/live2/2t99-w0zu-mku7-6m0y-8qch\" > /tmp/ffmpeg_youtube.log 2>&1 & \
 wait \
 "]
